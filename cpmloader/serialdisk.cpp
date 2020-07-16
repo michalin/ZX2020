@@ -252,7 +252,7 @@ void Serialdisk::writeChunk(const QByteArray &chunk2Write, uint8_t trknr, uint8_
             writeFile.write(chunk2Write);
             writeFile.close();
         }
-        qDebug("Write file: %s, pos: %u, pos0: %u", writeFile.fileName().toLocal8Bit().data(), pos, pos0);
+        //qDebug("Write file: %s, pos: %u, pos0: %u", writeFile.fileName().toLocal8Bit().data(), pos, pos0);
     }
     curDir.replace(pos, chunksize, chunk2Write);
 }
