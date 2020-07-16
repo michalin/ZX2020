@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/license.txt</file>
+        <file>resources/refresh.PNG</file>
+    </qresource>
+</RCC>
