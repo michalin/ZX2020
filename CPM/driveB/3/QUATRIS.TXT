@@ -1,0 +1,79 @@
+
+                             Quatris 2.0
+                         The Games of Shapes
+
+
+     Quatris is a game of placing shapes strategically as they fall 
+into place.  Each shape can be thought of as 4 small squares linked 
+together.  Thus the name Quatris.  These shapes are sometimes refered 
+to as tetrominoes.  The game is similar to the commercial game Tetris.  
+This adaptation of the theme is for CP/M.  It is written in Turbo 
+Pascal, and thus requires a Z80 or compatible CPU.  The source code is 
+available for a modest fee, and can be ported to MS-DOS with little 
+trouble.
+
+     The game controls are mostly numbers.  The game screen lists the 
+controls, so play is simple.  Strategy is complex however.  The main 
+object is to completely fill whole rows with blocks.  When this 
+happens, the row vanishes, and the end of the game is postponed.  
+Points are accumulated as each shape drops.  You get more points for 
+placing the shape faster, so use the space bar to drop it into place 
+as soon as it is properly positioned.  You get more points at harder 
+(lower) levels as the action speeds up.  It may be strategic to begin 
+at a higher level, or to advance while playing.  The level auto- 
+matically advances, if not high enough already, after a certain number 
+of rows have been filled.  An option to preview the next shape is 
+available, but it does slightly lower your points.
+
+     The .COM file is initially set up for a Kaypro/Televideo/ADM type 
+terminal.  The public domain program PDTINS by Carson Wilson is 
+included to allow this to be changed if needed.  My thanks to him for 
+this program.  In the unlikely event that a compatible terminal is not 
+on the PDTINS menu, you only need to worry about clear screen and 
+cursor addressing.  Look for 01A hex for clear screen, and <ESC>=rc 
+for cursor addressing in the distributed .COM file.  The crt init (and 
+exit) sequence can be used to turn the cursor off (and back on) if it 
+bothers you.  With DDT, the strings would begin (length first) at 016B 
+hex (off) and 017B hex (on).  Add your strings, with appropriate 
+lengths, to enable this feature.
+
+     The game is configured to run best on a 4 MHz machine.  This too 
+can be changed.  To try a different value (lower values make the game 
+more challenging) include the value on the command line, example:
+
+     A>QUATRIS 3MHZ<RET>
+
+To enter your system speed permanently as the default, requires DDT or 
+some other patch utility.  The value is at location 0124 hex.
+
+     A high scores file is maintained for the top ten scores.  This 
+encourages competition and makes the game more enjoyable, even if you 
+only try to better your own high score.  My high score is about 6500.  
+To see the high scores without playing just enter the command:
+
+     A>QUATRIS SCORE<RET>
+
+     The game can be exited early if desired.  In case of supervisor 
+surveillance, or if you need to pause for some reason (ahem), there is 
+a key which clears the screen and leaves a bogus "A>" prompt.  Hit 
+any key to resume where you left off, or hit ESC at the false prompt 
+to quietly exit to CP/M (your score is not recorded in this case).
+
+     This software and documentation is copyright 1989 by Steven B. 
+Perkins.  You are free to use, copy, and distribute it as long as it 
+is not for profit.  Contact me if other arrangements are desired.
+
+     I believe the CP/M world can use more support.  There really are 
+a lot of us out here!  Any comments about this game, or monetary 
+encouragement towards further efforts and upgrades can be sent to the 
+address below.  I also frequent Z-Node 45: (713)937-8886 and you can 
+leave messages for me there.  A donation of $10 or more makes you an 
+official supported user.  If you send such a donation and a floppy 
+disk, you will receive the source code, the latest version, and another 
+game and utility to try.  Have fun, and keep supporting CP/M and the Z- 
+system.
+
+
+     Address:       Steven B. Perkins
+                    1227 Spring Ridge Dr.
+                    Sandy, UT  84094

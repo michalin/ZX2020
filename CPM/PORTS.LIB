@@ -1,0 +1,87 @@
+;    I/O Port addresses for Z80 chip set
+;    based system with wd1797 FDC
+
+	; chip bases
+
+p$zdma		equ 0	
+p$wd1797	equ 0
+p$zpio1		equ 0
+p$zctc1		equ 0
+p$zpio2		equ 0
+p$boot		equ 0	; OUT disables boot EPROM
+p$zdart		equ 4	; 0: Data A; 1: config A; 2: Data B; 3: config B
+p$zpio3		equ 0
+p$zsio1		equ 0	; 
+p$zsio2		equ 0
+p$zctc2		equ 0
+
+
+	; diskette controller chip ports
+
+p$fdcmnd	equ p$wd1797+0
+p$fdstat	equ p$wd1797+0
+p$fdtrack	equ p$wd1797+1
+p$fdsector	equ p$wd1797+2
+p$fddata	equ p$wd1797+3
+
+	; parallel I/O 1
+
+p$select	equ p$zpio1+0
+p$fdint		equ p$zpio1+0
+p$fdmisc	equ p$zpio1+1
+p$zpio1a	equ p$zpio1+2
+p$zpio1b	equ p$zpio1+3
+
+	; counter timer chip 1
+
+p$baudcon1	equ p$zctc1+0
+p$baudlpt1	equ p$zctc1+2
+p$index		equ p$zctc1+3
+
+
+	; parallel I/O 2, Centronics printer interface
+
+p$cent$stat	equ p$zpio2+0
+p$cent$data	equ p$zpio2+1
+p$zpio2a	equ p$zpio2+2
+p$zpio2b	equ p$zpio2+3
+
+
+	; dual asynch rcvr/xmtr, console and serial printer ports
+
+p$crt$data	equ p$zdart+0
+p$crt$stat	equ p$zdart+1
+p$lpt$data	equ p$zdart+2
+p$lpt$stat	equ p$zdart+3
+
+
+	; Third Parallel I/O device
+
+p$configuration	equ p$zpio3+0
+p$bankselect	equ p$zpio3+1
+p$zpio3a	equ p$zpio3+2
+p$zpio3b	equ p$zpio3+3
+
+
+	; Serial I/O device 1, printer 2 and console 4
+
+p$lpt2data	equ p$zsio1+0
+p$lpt2stat	equ p$zsio1+1
+p$con4data	equ p$zsio1+2
+p$con4stat	equ p$zsio1+3
+
+
+	; Serial I/O device 2, console 2 and 3
+
+p$con2data	equ p$zsio2+0
+p$con2stat	equ p$zsio2+1
+p$con3data	equ p$zsio2+2
+p$con3stat	equ p$zsio2+3
+
+
+	; second Counter Timer Circuit
+
+p$baudcon2	equ p$zctc2+0
+p$baudcon34	equ p$zctc2+1
+p$baudlpt2	equ p$zctc2+2
+p$rtc		equ p$zctc2+3

@@ -1,0 +1,15 @@
+If you want to physically write a check and then deliver it or
+mail it, or have already done so, enter "CHECK".  You may also
+enter "CHECK" if you made a withdrawal or transfer of funds
+using an automatic teller machine at the bank or elsewhere.
+MONEY MAESTRO will record that you wrote the check, and deduct
+the amount from your checking account balance.  If you paid for
+something with a Master Card, VISA card, or cash, then enter
+"MC", "VISA", or "CASH", respectively.  None of these will
+affect your checking account balance, but will keep records for
+budget and tax purposes.  Likewise, "MEMO" can be used to make
+notes for budget or tax purposes.  Any of the above can be
+abbreviated, since only the first few characters of the reply
+are inspected.  Abbreviations recognized are MC, ME, CH, CA,
+and V.
+

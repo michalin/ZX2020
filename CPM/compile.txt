@@ -1,0 +1,8 @@
+Requirements: 
+- zxcc-Windows: https://github.com/Tbxxx/zxcc-windows
+- GNU make utility for Windows: gnuwin32.sourceforge.net/packages/make.htm
+
+TODO:
+- Add GNU make utiliy executable (make.exe) to your Path.
+- Adapt path to the build tools zxcc.exe, rmac.exe and drilink.exe in the makefile (default c:\zxcc\bin)
+- Open command shell and type "make"

@@ -1,0 +1,12 @@
+You can add a category using a new category number, which must
+be three digits long, between 001 and 999.  You need to have a
+name for the category, which can be 27 letters long.  It is a
+good idea to have a name that isn't confusing with other names
+you might have for categories.  You will also need some
+"attributes".  If you remember that the first letter of the
+attributes must be either "I" or "E" (for income or expense),
+you will get by, but check the manual for complete details.
+You can change an existing category name or attributes.  If
+you haven't used a category yet this year, you can even delete
+a category.
+

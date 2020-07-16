@@ -1,0 +1,61 @@
+                    Welcome to Money Maestro!
+
+     The Money Maestro home banking system is intended to
+relieve you of the troublesome details of financial
+record keeping and to provide you with the information you need
+to manage your money well.  This system is designed to be used
+entirely without documentation and you will easily learn to run
+it.  Simply follow the directions as they appear on the screen.
+Most prompts will be very clear but, if you get stuck, type ?
+and you will usually get further instructions.  If you want to
+stop what you are doing, type the ESC key (or ESCAPE on some
+keyboards), and MONEY MAESTRO will attempt to gracefully back
+you out of whatever situation you are in.
+
+     Remember, all of your answers should be followed by
+pressing the RETURN (or ENTER) key to let the machine know you
+have stopped typing.  If you would like to run the system on
+the sample data we have included, stop the system (by typing
+END) and restart it by typing MAESTRO PRACTICE rather than just
+MAESTRO.  If all else fails, the manual includes a practice run
+based on this data as well as notes on some of the more
+sophisticated uses of the system.
+
+     Basic input to the system consists of all the financial
+transactions you make.  This would include all the transactions
+normally recorded in your checkbook (deposits, checks written,
+charges incurred, etc.), as well as transactions made in cash
+or by charge card.  These are entered through menu choice 1.
+You will want to record this income and expense by category
+for later reporting.  We have included a typical category list,
+but don't feel constrained by it.  If you don't use a
+category - delete it.  If you have income or make payments that
+don't fit - make a new category.  Since you may reference the
+categories by name, the numbers are not too important.
+
+     When entering checks you will also be asked for a PAYEE
+name.  Here, you may just enter the name of the company or
+person you want to pay, or from whom you are receiving money.
+However, if you think you may later wish to get histories of
+payments to that payee, you will want to enter the name on the
+payee list.  This will also save you the trouble of typing the
+whole name every time.  Add to or amend the payee list through
+menu choice 10.
+
+     While paying bills or making deposits, you will also be
+asked to record a memorandum of the transaction.  This is just
+a space (25 letters or numbers long) to help you remember what
+you were paying for.  Some people use the invoice numbers of
+their bills, some write things like "June phone bill".  This
+space is for your convenience, use it as you like.  You may
+also show payments and deposits that have not directly affected
+your account balance.  These will be payments made by
+MasterCard, Visa, or Cash.  Probably the best way to get to
+know the system is to run it.  Don't worry about budgeting, tax
+reporting, and stockpiles just yet, you will get plenty of use
+from the system without them.
+
+                    Enter some payees!
+                    Change a category!
+                    Enter some transactions!
+

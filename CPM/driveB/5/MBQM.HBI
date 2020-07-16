@@ -1,0 +1,10 @@
+You can delete this transaction altogether by entering DELETE,
+or mark it so it won't be paid until you change it back by
+entering HOLD, or mark it to pay by entering PAY, change
+the amount to pay by entering CHANGE, or keep it as is by
+entering KEEP.
+
+After each time you enter HOLD, PAY, or CHANGE, MONEY MAESTRO
+will keep showing you the current status of the transaction
+until you enter KEEP.
+
