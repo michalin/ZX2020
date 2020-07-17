@@ -4,7 +4,7 @@ Yet another homebuilt Z80 Computer, but this one works without any FPGAs or Micr
 
 To build the ZX 2020, do the following:
 - Wire the parts on a breadboard or perfboard like shown in the schematic
-- Copy the CPM directoriy tree to any location on your PC, e.g. your user directory 
+- Copy the CPM directory tree to any location on your PC, e.g. your user directory 
 - Load the Arduino Sketch into an Arduino Mega
 - Start a serial terminal emulation, for example "Putty", set 125000 Baud, 8 Bit, 1 Stopbit, no parity
 - Compile and run the tool cpmloader.exe
