@@ -1,7 +1,0 @@
-Requirements: 
-- zxcc-Windows: https://github.com/Tbxxx/zxcc-windows (zxcc.exe included)
-- GNU make utility for Windows: gnuwin32.sourceforge.net/packages/make.htm
-
-todo:
-- Add GNU make utiliy executable (make.exe) to your Path.
-- Open command shell and type "make"
