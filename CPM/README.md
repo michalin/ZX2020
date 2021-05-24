@@ -1,6 +1,11 @@
-This folder contains the system files CPM3.SYS and some CP/M user programs under driveA. You only need to compile the source files (*.asm), when you want to make changes to the kernel. 
-todo:
-- Copy to any location on your PC where you have write permission (e.g. your user directory)
+This folder contains the system files, sources and some CP/M user programs in the directory *driveA*. You only need to compile the source files (*.asm), if you want to make changes to the kernel. 
 
-To compile (if necessary):
-- Follow the instructions in the file compile.txt
+**Compiling CP/M and auxiliary programs (if necessary)**
+Requirements: 
+
+ - Windows command prompt or PowerShell
+ - GNU make utility for Windows: gnuwin32.sourceforge.net/packages/make.htm
+
+todo:
+- Add GNU make utiliy executable (make.exe) to your Path.
+- Open command shell, cd into this directory and type "make"
