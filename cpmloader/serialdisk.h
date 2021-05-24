@@ -12,54 +12,58 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
 
 #ifndef SERIALDISK_H
 #define SERIALDISK_H
 
-#include <QObject>
-#include <QSerialPort>
+#include <QFileSystemWatcher>
 #include <QFile>
+#include <QDir>
+#include <QList>
+#include <QSerialPort>
+#include <QtMath>
+#include <QtDebug>
+#include <QDateTime>
 
 #define NAME "Serial Disk Drive"
 #define PATH_A "/driveA"
-#define PATH_B "/driveB"
+
+//File system parameters
+const int sectlen = 256;
+const int sctpertrk = 64;
+const int blksize = 16384;
+const int dirsize = 16384;
+const int disksize = blksize * 0x800;
 
 class Serialdisk : public QObject
 {
     Q_OBJECT
 public:
-    explicit Serialdisk(QObject *parent = nullptr);
-    void mount(QSerialPort *, const QString);
-    void unmount();
-    void UpdateDirs();
-
+    explicit Serialdisk(QSerialPort*, QString*, QObject *parent = nullptr);
+    void reload();
 
 private slots:
-    void onRxData();
+    void on_command(const QByteArray);
+
 
 private:
-    QString mPath;
+    QString mCpmPath, *p_cpmPath;
+    QByteArray mDir;
     QSerialPort *p_serial;
-    void readChunk(uint8_t, uint8_t, uint8_t=0);
-    void writeChunk(const QByteArray&, uint8_t, uint8_t, uint8_t=0);
-    void make_dir_record(QByteArray);
-    void readUserDir(QByteArray&, QString, uint8_t);
-    void getWriteFileName(const QByteArray &, const uint16_t, QString &, uint &);
-    QByteArray dirA, dirB;
-    bool is_mounted = false;
-    const uint8_t reqlen = 18; //Length of request header
-    const uint8_t chunksize = 32;
-    const uint8_t sctpertrk = 64; //Sectors per track
-    const uint16_t blksize = 8192;
-    bool acknowledged = false;  //ack for received chunk
-    QObject *parent;
+    void writeFile(const QByteArray&, uint16_t, uint8_t);
+    QByteArray readFile(uint16_t, uint8_t);
+    QString ext2fname(QByteArray);
+    void make_extend(QByteArray);
+    void readUserDir(QString, uint8_t);
+    void onRxDataComplete(QByteArray);
+    void write2disk(QByteArray);
+    QDateTime mLastSync;
+    bool file_changed = false;
 
 signals:
-    void on_unmount();
     void on_activeA(int);
-    void on_activeB(int);
+    void message(const QString);
 };
 
 #endif // SERIALDISK_H

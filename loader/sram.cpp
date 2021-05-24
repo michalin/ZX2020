@@ -21,9 +21,9 @@ char s_msg[255];
 uint8_t sramRead(uint16_t addr)
 {
     uint8_t val;
-    MREQ(ACT_LO);
-    RD(ACT_LO);
-    WR(PSV_HI);
+    MREQ(ACTIVE);
+    RD(ACTIVE);
+    WR(PASSIVE);
     DDRL = 0;
     DDRA = 0xFF;
     PORTA = (uint8_t)addr;
@@ -33,9 +33,9 @@ uint8_t sramRead(uint16_t addr)
     val = PINL;
     DDRA = 0;
     DDRC = 0;
-    RD(PSV_TRI);
-    WR(PSV_TRI);
-    MREQ(PSV_TRI);
+    RD(PASSIVE);
+    WR(PASSIVE);
+    MREQ(PASSIVE);
     return val;
 }
 
@@ -49,31 +49,23 @@ void sramRead(uint8_t *buffer, uint16_t saddr, uint16_t len)
 
 void sramWrite(uint16_t addr, uint8_t data)
 {
-    MREQ(ACT_LO);
-    //RD(PSV_HI);
-    WR(PSV_HI); //WE must be high during address transitions
-    DDRA = 0xFF;
-    PORTA = (uint8_t)addr;
-    DDRC = 0xFF;
-    PORTC = (uint8_t)(addr >> 8);
-    WR(ACT_LO);
-    
     DDRL = 0xFF;
+    MREQ(ACTIVE);
+    WR(PASSIVE); //WE must be high during address transitions
+    PORTA = (uint8_t)addr;
+    PORTC = (uint8_t)(addr >> 8);
+    WR(ACTIVE);
     PORTL = data;
-
-    WR(PSV_TRI);
-    MREQ(PSV_TRI);
-    DDRL = 0;
-    DDRA = 0;
-    DDRC = 0;
+    WR(PASSIVE);
+    MREQ(PASSIVE);
 }
 
 void sramTest()
 {
     Serial.println("Starting SRAM Test");
     delay(10);
-    BUSRQ(ACT_LO);
-    MREQ(ACT_LO);
+    BUSRQ(ACTIVE);
+    MREQ(ACTIVE);
     int errors = 0;
     for (int addr_hi = 255; addr_hi >= 0; addr_hi--)
     {
@@ -98,5 +90,5 @@ void sramTest()
     }
     sprintf(s_msg, "\nSRAM test passed with %d errors", errors);
     Serial.println(s_msg);
-    BUSRQ(PSV_HI);
+    BUSRQ(PASSIVE);
 }

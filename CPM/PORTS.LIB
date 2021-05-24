@@ -9,7 +9,7 @@ p$zpio1		equ 0
 p$zctc1		equ 0
 p$zpio2		equ 0
 p$boot		equ 0	; OUT disables boot EPROM
-p$zdart		equ 4	; 4: Data A; 5: config A; 6: Data B; 7: config B
+p$zdart		equ 10h	; Data A: 10h; config A:11h; Data B:12h; config B:13
 p$zpio3		equ 0
 p$zsio1		equ 0	; 
 p$zsio2		equ 0

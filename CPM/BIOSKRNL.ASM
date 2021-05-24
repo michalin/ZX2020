@@ -6,7 +6,7 @@ true	equ -1
 false	equ not true
 
 banked	equ false
-	
+
 
 ;		  Copyright (C), 1982
 ;		 Digital Research, Inc
@@ -72,11 +72,11 @@ ccp	equ 0100h	; Console Command Processor gets loaded into the TPA
 	public ?pderr		; print BIOS disk error message header
 
 	maclib modebaud		; define mode bits
-	maclib debug
-	debug equ true
+	maclib ports
+	maclib z80
+	maclib utils
 
-
-    ; External names for BIOS entry points
+	; External names for BIOS entry points
 
 	public ?boot,?wboot,?const,?conin,?cono,?list,?auxo,?auxi
 	public ?home,?sldsk,?sttrk,?stsec,?stdma,?read,?write
@@ -139,12 +139,8 @@ ccp	equ 0100h	; Console Command Processor gets loaded into the TPA
 
 boot:
 	lxi sp,boot$stack
-	mvi c,15	; initialize all 16 character devices
-c$init$loop:
-	push b ! call ?cinit ! pop b
-	dcr c ! jp c$init$loop
 
-	call ?init	; perform any additional system initialization
+	call ?init	; perform any system initialization
 			; and print signon message
 
 	lxi b,16*256+0 ! lxi h,@dtbl	; init all 16 logical disk drives
@@ -497,7 +493,9 @@ xofflist	db	-1,-1,-1,-1,-1,-1,-1,-1		; ctl-s clears to zero
 	;		in <HL>
 
 seldsk:
+	;PRINT 'SELDSK '
 	mov a,c ! sta @adrv			; save drive select code
+	;call ?hex8
 	mov l,c ! mvi h,0 ! dad h		; create index from drive code
 	lxi b,@dtbl ! dad b			; get pointer to dispatch table
 	mov a,m ! inx h ! mov h,m ! mov l,a	; point at disk descriptor
@@ -642,7 +640,6 @@ sector$msg	db	', S-',0
 @dma	ds	2		; current DMA address
 @cnt	db	0		; record count for multisector transfer
 @dbnk	db	0		; bank for DMA operations
-
 
 	cseg	; common memory
 

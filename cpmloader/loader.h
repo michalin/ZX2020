@@ -21,29 +21,27 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QByteArray>
-#include <QList>
+#include <QDebug>
+#include <QFile>
 
 class Loader : public QObject
 {
     Q_OBJECT
 public:
     explicit Loader(QSerialPort *, QObject *parent = nullptr);
-    void open(const QString);
+    void upload(const QString);
     ~Loader();
 
 private:
-    QString sysFileName = "";
-    QSerialPort *p_serial = new QSerialPort();
-    void loadCPM();
-    void gencpm(const QString, QByteArray &, uint16_t &, uint16_t &);
-    void upload(QByteArray, const uint16_t, const uint16_t);
+    QFile imgFile;
+    QSerialPort *p_serial;
 
 signals:
-    void portsChanged(const QStringList);
-    void finished();
+    //void finished();
+    void message(const QString);
 
 private slots:
-    void on_RxData();
+    void on_command(const QByteArray);
 };
 
 #endif // LOADER_H

@@ -1,0 +1,36 @@
+ZASM - Z80 Opcode Assembler
+---------------------------
+
+ZASM is a fairly basic assembler for Z80 opcodes, along thelines of the ASM
+assembler for 8080 opcodes. It takes a sourcefile in Z80 code, and assembles
+it to an Intel hex file, whichcan then either be converted to an executable 
+using the CP/MLOAD command, or blown to an eprom.
+
+ZASM is a two pass assembler. 
+During both passes the assemblyis listed to screen. On encountering an error a 
+message ió displayed to the screen and the option of continuing orabandoning is 
+offered.
+
+ZASM is self hosting (it can assemble itself). Therefore thesource 
+code provides a reasonable example of the syntax.
+
+To use ZASM to assemble ZASM use the CP/M command:
+
+ZASM ZASM.Z80
+
+Syntax notes:
+
+* Z80 Opcodes are standard.
+* Numbers are decimal by default.
+* Hex numbers are preceeded by a hash (#).
+* Pseudo ops are:
+  DEFB - Define bytes.
+  DEFW - Define words.
+  DEFS - Define strings.
+  DEFC - Define strings terminated with high bit set.
+  BYTE - Reserve space for specified number of bytes.
+  WORD - Reserve space for specified number of words.
+  ORG  - Set location for calculating address of labels.
+  LOAD - Set address for code in hex file.
+  INCLUDE - Insert contents of specified file at this location.
+  CHAIN

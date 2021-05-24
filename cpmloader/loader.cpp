@@ -14,111 +14,34 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
-#include <QDebug>
-#include <QFile>
-#include <QThread>
+
+//This class loads CP/M BDOS and BIOS into SRAM and initializes the jump vectors
 #include "loader.h"
 
 Loader::Loader(QSerialPort *serial, QObject *parent) : QObject(parent)
 {
     p_serial  = serial;
 }
-void Loader::on_RxData(){
 
-    QByteArray data = p_serial->readAll();
-    if(data.contains("@reset@")){
-        loadCPM();
-    } else if (data.contains("@running")){
-        disconnect(p_serial, SIGNAL(readyRead()), this, SLOT(on_RxData()));
-        emit finished();
-    }
-
-    qDebug("Loader: ");
-    for(int i = 0; i < data.size(); i++){
-        printf("%c", (char)data[i]);
-    }
-    fflush(stdout);
-    //emit serialDataReceived(data);
-
+void Loader::upload(const QString imgFileName){
+    imgFile.setFileName(imgFileName);
+    imgFile.open(QIODevice::ReadOnly);
+    QByteArray cmd = "@ldcpm";
+    cmd.append((uint8_t)0); //Base addr 0x0000
+    cmd.append((uint8_t)0); //Base addr 0x0000
+    cmd.append((uint8_t)imgFile.size());
+    cmd.append((uint8_t)(imgFile.size() >> 8));
+    cmd.append("@");
+    p_serial->write(cmd); //Send Base address and size of image
 }
 
-void Loader::open(const QString sysFileName){
-    this->sysFileName = sysFileName;
-    //qDebug("-->Loader::openPort(%s)", name.toLocal8Bit().data());
-    connect(p_serial, SIGNAL(readyRead()), this, SLOT(on_RxData()));
-   p_serial->setDataTerminalReady(true);
-   p_serial->setDataTerminalReady(false);
-}
-
-void Loader::loadCPM(){
-    qDebug("-->loadCPM()");
-
-    QByteArray cpm;
-    uint16_t bios, bdos;
-    gencpm(sysFileName, cpm, bdos, bios);
-    qDebug("BDOS base: 0x%04X", bdos);
-    qDebug("BIOS base: 0x%04X", bios);
-    upload(cpm, bdos, bios);
-    p_serial->write("@run@    "); //Start command
-    p_serial->waitForBytesWritten();
-}
-
-void Loader::upload(QByteArray cpm, const uint16_t bdos, const uint16_t bios){
-    QByteArray header = "@lad@";
-
-    QByteArray jump;  //Construct jump vector to Bios
-    jump.append(0xC3); //JP nn
-    jump.append(bios);
-    jump.append(bios >> 8);
-    cpm.prepend(jump);
-
-   uint16_t base = bdos - 3;
-   uint16_t size = cpm.size();
-
-    header.append((uint8_t)base);
-    header.append((uint8_t)(base >> 8));
-    header.append((uint8_t)size);
-    header.append((uint8_t)(size >> 8));
-    p_serial->write(header); //Command + Header
-    p_serial->waitForBytesWritten();
-    QThread::sleep(2);
-
-
-    p_serial->write(cpm); //now the program
-    p_serial->waitForBytesWritten();
-}
-
-void Loader::gencpm(const QString file, QByteArray &cpm, uint16_t &bdosbase, uint16_t &biosbase)  //Does the same like GENCPM.COM
-{
-    //QCoreApplication a(argc, argv);
-    QFile cpm3sys(file);
-    if(!cpm3sys.exists()){
-        qDebug("Error: No cpm3.sys\n");
+//Singnals forwarded from mainwindow class
+void Loader::on_command(const QByteArray cmd){
+    if(cmd == "rqcpm"){
+        QByteArray img = imgFile.readAll();
+        p_serial->write(img);
+        imgFile.close();
     }
-
-    cpm3sys.open(QIODevice::ReadOnly);
-    QByteArray inbuf = cpm3sys.readAll();
-    cpm3sys.close();
-    if(inbuf.isEmpty()){
-        qDebug("Error: cpm3.sys could not be read\n");
-    }
-
-    //Write inbuf records into list
-    QList<QByteArray> records;
-    for(int i = 0; i < inbuf.size()/128; i++){
-        QByteArray rec = inbuf.mid(128*i, 128);
-        records.append(rec);
-    }
-
-    //Read out remaining records in a reverted order
-    for(int i = records.size()-1; i >= 2; i--){
-        for(int j = 0; j < 128; j++){
-            cpm.append(records[i][j]);
-        }
-    }
-
-    bdosbase = inbuf.mid(0xac, 4).toUInt(nullptr, 16);
-    biosbase = inbuf.mid(0x91, 4).toUInt(nullptr, 16);
 }
 
 Loader::~Loader(){

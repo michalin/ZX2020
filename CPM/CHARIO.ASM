@@ -32,7 +32,7 @@ max$devices	equ 6
 	dad h ! dad h ! dad h		; *8 
 	lxi d,@ctbl+7 ! dad d ! mov l,m	; get baud rate
 	mov a,l ! cpi baud$600		; see if baud > 300
-	mvi a,84h ! jnc hi$speed	; if >= 600, use *32 mode 
+	mvi a,084h ! jnc hi$speed	; if >= 600, use *32 mode (84h)
 	mvi a,0c4h ; else, use *64 mode
 hi$speed:
 	sta sio$reg$4	
@@ -162,8 +162,8 @@ ctc$port	ds 1		; port address of CTC
 speed		ds 1		; baud multiplier
 		db 9		; 7 bytes to SIO
 sio$port	ds 1		; port address of SIO
-		db 18h,1,80h,3,0E1h,4
-sio$reg$4	ds 1
+		db 18h,1,80h,3,0D1h,4
+sio$reg$4	ds 1	; Value of write reg 4 
 		db 5,0EAh 	
 		db 0		; terminator
 

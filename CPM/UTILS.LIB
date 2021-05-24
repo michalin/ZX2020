@@ -1,0 +1,56 @@
+extrn ?str2hex,?c2hex,?hex8,?hex16,?showfcb
+
+
+; Macro to print out text on DART-B
+DEBUG MACRO ?dbgmsg
+	local ?msg,?go
+	jmp ?go
+ ?msg:
+	db '<DBG>',10,13,?dbgmsg,'</DBG>'
+ ?go: 
+	push b! push h
+    mvi b, ?go-?msg
+    mvi c, p$zdart+2
+	lxi h, ?msg
+	OUTIR
+	pop h! pop b 
+	ENDM
+
+
+; Macro to print out text on DART-A
+PRINT MACRO ?dbgmsg
+	local ?msg,?go
+	jmp ?go
+ ?msg:
+	db 10,13,?dbgmsg
+ ?go:
+	push b! push h
+    mvi b, ?go-?msg
+    mvi c, p$zdart
+	lxi h, ?msg
+	OUTIR
+	pop h! pop b 
+	ENDM
+	
+; delay macro
+DLY MACRO ?time
+    local ?lp
+    PUSH d! PUSH psw
+    lxi d, ?time
+ ?lp:  DCX d ;Count down de
+    MOV A, d! ORA e ;until e || d == 0
+    JNZ ?lp
+    POP psw! POP d
+    ENDM
+
+DBGINT8 MACRO ?var8
+	push psw
+    lda ?var8! call ?hex8
+	pop psw
+	ENDM
+
+DBGINT16 MACRO ?var16
+	push h
+	lhld ?var16 ! call ?hex16
+	pop h
+	ENDM
