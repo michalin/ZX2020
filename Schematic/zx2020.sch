@@ -1886,7 +1886,7 @@ F 3 "~" H 2450 7100 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Timer:NE555 U7
+L Timer:NE555P U7
 U 1 1 60852E6C
 P 3350 6700
 F 0 "U7" H 3200 7150 50  0000 C CNN
@@ -2142,6 +2142,17 @@ Wire Wire Line
 Connection ~ 2950 7350
 Wire Wire Line
 	2950 7350 2450 7350
+$Comp
+L Timer:NE555P U4
+U 1 1 60ADBA10
+P 2900 9800
+F 0 "U4" H 2900 10381 50  0000 C CNN
+F 1 "NE555" H 2900 10290 50  0000 C CNN
+F 2 "" H 2900 9800 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/ne555.pdf" H 2900 9800 50  0001 C CNN
+	1    2900 9800
+	1    0    0    -1  
+$EndComp
 Wire Bus Line
 	7000 5600 10800 5600
 Wire Bus Line
@@ -2192,15 +2203,4 @@ Wire Bus Line
 	7000 2350 7000 5600
 Wire Bus Line
 	2350 1550 2350 5600
-$Comp
-L Timer:NE555 U4
-U 1 1 60ADBA10
-P 2900 9800
-F 0 "U4" H 2900 10381 50  0000 C CNN
-F 1 "NE555" H 2900 10290 50  0000 C CNN
-F 2 "" H 2900 9800 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/ne555.pdf" H 2900 9800 50  0001 C CNN
-	1    2900 9800
-	1    0    0    -1  
-$EndComp
 $EndSCHEMATC
