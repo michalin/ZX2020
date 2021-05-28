@@ -1653,17 +1653,6 @@ F 3 "http://www.ti.com/lit/gpn/sn7400" H 9900 6350 50  0001 C CNN
 $EndComp
 Connection ~ 9600 6450
 $Comp
-L Triac_Thyristor:BT169B Q1
-U 1 1 6088277D
-P 3850 9000
-F 0 "Q1" V 4075 9000 50  0000 C CNN
-F 1 "BT169B" V 3984 9000 50  0000 C CNN
-F 2 "Package_TO_SOT_THT:TO-92_Inline" H 3950 8925 50  0001 L CIN
-F 3 "https://media.digikey.com/pdf/Data%20Sheets/NXP%20PDFs/BT169_Series.pdf" H 3850 9000 50  0001 L CNN
-	1    3850 9000
-	0    -1   -1   0   
-$EndComp
-$Comp
 L Diode:BAT43 D2
 U 1 1 60915C5C
 P 3350 1900
@@ -1694,131 +1683,6 @@ Entry Wire Line
 	2350 4100 2450 4000
 Text Label 2500 4000 0    50   ~ 0
 A15
-$Comp
-L Device:R R1
-U 1 1 60A1B86E
-P 2000 9850
-F 0 "R1" H 2070 9896 50  0000 L CNN
-F 1 "R" H 2070 9805 50  0000 L CNN
-F 2 "" V 1930 9850 50  0001 C CNN
-F 3 "~" H 2000 9850 50  0001 C CNN
-	1    2000 9850
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:CP C1
-U 1 1 60A1C98E
-P 2000 9350
-F 0 "C1" H 2118 9396 50  0000 L CNN
-F 1 "CP" H 2118 9305 50  0000 L CNN
-F 2 "" H 2038 9200 50  0001 C CNN
-F 3 "~" H 2000 9350 50  0001 C CNN
-	1    2000 9350
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R R5
-U 1 1 60A715A0
-P 3700 9600
-F 0 "R5" V 3493 9600 50  0000 C CNN
-F 1 "R" V 3584 9600 50  0000 C CNN
-F 2 "" V 3630 9600 50  0001 C CNN
-F 3 "~" H 3700 9600 50  0001 C CNN
-	1    3700 9600
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	2400 9600 2300 9600
-Wire Wire Line
-	2000 9500 2000 9600
-Connection ~ 2000 9600
-Wire Wire Line
-	2000 9600 2000 9700
-Wire Wire Line
-	2300 9600 2300 10350
-Wire Wire Line
-	2300 10350 3400 10350
-Wire Wire Line
-	3400 10350 3400 10000
-Connection ~ 2300 9600
-Wire Wire Line
-	2300 9600 2000 9600
-Wire Wire Line
-	2900 10200 2000 10200
-Wire Wire Line
-	2000 10200 2000 10000
-Wire Wire Line
-	2900 10200 2900 10550
-Connection ~ 2900 10200
-$Comp
-L power:GND #PWR0107
-U 1 1 60AE77B5
-P 2900 10550
-F 0 "#PWR0107" H 2900 10300 50  0001 C CNN
-F 1 "GND" H 2905 10377 50  0000 C CNN
-F 2 "" H 2900 10550 50  0001 C CNN
-F 3 "" H 2900 10550 50  0001 C CNN
-	1    2900 10550
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2900 9400 2900 9000
-Wire Wire Line
-	2900 9000 2000 9000
-Wire Wire Line
-	2000 9000 2000 9200
-Wire Wire Line
-	2900 9000 3050 9000
-Connection ~ 2900 9000
-$Comp
-L Device:R R6
-U 1 1 60B406BE
-P 3950 9850
-F 0 "R6" H 4020 9896 50  0000 L CNN
-F 1 "R" H 4020 9805 50  0000 L CNN
-F 2 "" V 3880 9850 50  0001 C CNN
-F 3 "~" H 3950 9850 50  0001 C CNN
-	1    3950 9850
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2900 10200 3950 10200
-Wire Wire Line
-	3950 10200 3950 10000
-Wire Wire Line
-	3400 9600 3550 9600
-Wire Wire Line
-	3950 9700 3950 9600
-Wire Wire Line
-	3850 9600 3950 9600
-Wire Wire Line
-	3950 9600 3950 9150
-Wire Wire Line
-	4000 9000 4300 9000
-$Comp
-L power:+5V #PWR0110
-U 1 1 60C241F3
-P 4300 9000
-F 0 "#PWR0110" H 4300 8850 50  0001 C CNN
-F 1 "+5V" V 4315 9128 50  0000 L CNN
-F 2 "" H 4300 9000 50  0001 C CNN
-F 3 "" H 4300 9000 50  0001 C CNN
-	1    4300 9000
-	0    1    1    0   
-$EndComp
-$Comp
-L power:VCC #PWR0111
-U 1 1 60C2558A
-P 2900 8850
-F 0 "#PWR0111" H 2900 8700 50  0001 C CNN
-F 1 "VCC" H 2915 9023 50  0000 C CNN
-F 2 "" H 2900 8850 50  0001 C CNN
-F 3 "" H 2900 8850 50  0001 C CNN
-	1    2900 8850
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2900 8850 2900 9000
 Entry Wire Line
 	15150 5400 15250 5500
 Wire Wire Line
@@ -1981,7 +1845,6 @@ Connection ~ 7750 5450
 Wire Bus Line
 	7750 5450 9050 5450
 Connection ~ 10100 5450
-Connection ~ 3950 9600
 Wire Bus Line
 	10100 5450 10550 5450
 Connection ~ 9050 5450
@@ -2010,25 +1873,12 @@ Wire Wire Line
 Connection ~ 6650 7150
 Wire Wire Line
 	6650 7150 5800 7150
-Wire Notes Line
-	1850 8500 1850 10950
-Wire Notes Line
-	1850 10950 4800 10950
-Wire Notes Line
-	4800 10950 4800 8500
-Wire Notes Line
-	4800 8500 1850 8500
-Text Notes 4700 10900 2    50   ~ 0
-Power delay
 Wire Wire Line
 	9600 2550 9600 2650
 Text GLabel 10800 5550 0    50   Input ~ 0
 Address
 Text GLabel 10550 5400 0    50   Input ~ 0
 Control
-NoConn ~ 3400 9800
-NoConn ~ 2400 9800
-NoConn ~ 2400 10000
 Wire Wire Line
 	1900 4350 1500 4350
 Text GLabel 9600 3600 2    50   Input ~ 0
@@ -2125,34 +1975,9 @@ F 3 "~" H 2950 7350 50  0001 C CNN
 	1    2950 7350
 	-1   0    0    1   
 $EndComp
-$Comp
-L power:PWR_FLAG #FLG0101
-U 1 1 6142884E
-P 3050 9000
-F 0 "#FLG0101" H 3050 9075 50  0001 C CNN
-F 1 "PWR_FLAG" H 3050 9173 50  0000 C CNN
-F 2 "" H 3050 9000 50  0001 C CNN
-F 3 "~" H 3050 9000 50  0001 C CNN
-	1    3050 9000
-	1    0    0    -1  
-$EndComp
-Connection ~ 3050 9000
-Wire Wire Line
-	3050 9000 3700 9000
 Connection ~ 2950 7350
 Wire Wire Line
 	2950 7350 2450 7350
-$Comp
-L Timer:NE555P U4
-U 1 1 60ADBA10
-P 2900 9800
-F 0 "U4" H 2900 10381 50  0000 C CNN
-F 1 "NE555" H 2900 10290 50  0000 C CNN
-F 2 "" H 2900 9800 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/ne555.pdf" H 2900 9800 50  0001 C CNN
-	1    2900 9800
-	1    0    0    -1  
-$EndComp
 Wire Bus Line
 	7000 5600 10800 5600
 Wire Bus Line
