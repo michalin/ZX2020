@@ -740,7 +740,7 @@ $EndComp
 Wire Wire Line
 	1500 3850 1650 3850
 Text Label 1600 4150 0    50   ~ 0
-~RES
+~RST
 Entry Wire Line
 	4350 3400 4450 3500
 Entry Wire Line
@@ -1006,7 +1006,7 @@ Entry Wire Line
 Wire Wire Line
 	13100 6200 13350 6200
 Text Label 13050 5400 0    50   ~ 0
-~RES
+~RST
 Entry Wire Line
 	4350 3500 4450 3600
 Wire Wire Line
