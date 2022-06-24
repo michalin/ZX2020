@@ -1,32 +1,29 @@
+; Copyright (C) 2020  Doctor Volt
+
+ ; This program is free software: you can redistribute it and/or modify
+ ; it under the terms of the GNU General Public License as published by
+ ; the Free Software Foundation, either version 3 of the License, or
+ ; (at your option) any later version.
+
+ ; This program is distributed in the hope that it will be useful,
+ ; but WITHOUT ANY WARRANTY; without even the implied warranty of
+ ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ ; GNU General Public License for more details.
+
+ ; You should have received a copy of the GNU General Public License
+ ; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ;Bootloader remains in RAM
 
 ;Includes
-maclib ports
-maclib utils
-maclib z80
+    maclib utils
 
-extrn sd$init,sd$read,sd$write ;serdisk.asm
-extrn pa$init,pa$read,pa$write ;pata.asm
-extrn ?setup
-public @trk,@sect,@dma
+    extrn sd$read ;serdisk.asm
+    extrn ?painit,?paread ;pata.asa
+    extrn ?cinit,?irqinit
+    public @covec
+    public @trk,@sect,@dma
 
-CLS MACRO
-    local ?msg,?go
-    jmp ?go
- ?msg:
-    db 27,'[2J',27,'[H'
- ?go:
- 	EXX
-    mvi b, ?go-?msg
-    mvi c, p$zdart
-	lxi h, ?msg
-	OUTIR
-	EXX 
-    ENDM
-
-;General constants
-cr	equ 13
-lf	equ 10
 bootdev equ 08000h ;Byte in memory shared with bios boot routine. Contains drive to boot from
                     ;0: Serial disk (A:), no HD
                     ;1: Serial disk (A:), init HD 
@@ -35,182 +32,194 @@ bootdev equ 08000h ;Byte in memory shared with bios boot routine. Contains drive
 ; Main program
 ;
     db 0,0 ;reserved, must be zero
-    jmp start
+    jp start
 tmpbdos:
     db 0 ;jmp
     dw 0 ;Reserved space for temporary bdos jump vector used by BOOT.ASM/?rlldr
 start:
-    lxi sp, stack$end
-;Init DART A
-    mvi b,cfglen
-    mvi c,p$zdart+1 ;Config Port A
-    lxi h,dart$config
-    OUTIR
-;Init DART B
-    mvi b,cfglen
-    mvi c,p$zdart+3 ;Config Port B
-    lxi h,dart$config
-    OUTIR
-    DLY 0FFFFh
+    ld sp,stack$end
+    ld c,0! call ?cinit ;Init DART A and B without interrupt
+    PRINT <27,'[2J',27,'[H'> ;Clear terminal screen, Cursor to home position
+    ld c,2! call ?cinit ;Init VDP
 
 ;Init vars
-    lxi h,0! shld @sect! shld @trk
-    lxi h, dma$data! shld @dma
+    ld hl,0! ld (@sect),hl! ld(@trk),hl
+    ld hl,dma$data! ld (@dma),hl
 
-    CLS ;Clear screen
-    PRINT 'ZX 2020 Bootloader V1.0 (c) by Doctor Volt'
-
-    ;PRINT 'Init memory from 0x8000-0xffff'
-    lxi h, 08000h
+    PRINTLN 'ZX 2020 Bootloader V2.0 (c) Doctor Volt'
+    ;PRINTLN 'Init memory from 0x8000-0xffff'
+    ld hl, 08000h
 init$mem:  
-    mvi m,0
-    inr l! jnz init$mem
-    inr h! jnz init$mem
-
+    ld (hl),0
+    inc l! jp nz,init$mem
+    inc h! jp nz,init$mem
 
 ;Init disk drive
-    call pa$init
-    ora a! jnz sdboot1 ;HD not available
+    call ?painit
+    or a! jp nz,sdboot1 ;HD not available
 ; If a hard disk is available, check if it has a kernel file 
-    Print 'hard drive found'
-    call pa$read
-;jmp sdboot2 ; Uncomment to always boot from serial
+    PRINTLN 'Hard drive found'
+    
+    call ?paread
+
+   ; jp sdboot2 ; Uncomment to always boot from serial
+
     call find$rec
-    ora a! jnz sdboot2
-    jmp hdboot
+    or a! jp nz,sdboot2
+    jp hdboot
 sdboot1:
-    PRINT 'No hard drive found'
-    mvi a,0! sta bootdev
-    jmp sdboot
+    PRINTLN 'No hard drive found'
+    ld a,0! ld (bootdev),a
+    jp sdboot
 sdboot2:
-    PRINT 'No CP/M system found on hard drive'
-    mvi a,1! sta bootdev
+    PRINTLN 'No CP/M system found on hard drive'
+    ld a,1! ld (bootdev),a
 sdboot: 
-    PRINT 'Boot from Serial disk'
-    call sd$read
-    ora a! jnz sdboot$err
-    lxi h,0! shld @sect ;Sector with the memory maps
-    lxi h,1! shld @trk ;Track with cpm3.sys
+    PRINTLN 'Boot from Serial disk'
+    call sd$read! or a! jp nz,sdboot$err
+    ld hl,0! ld (@sect),hl ;Sector with the memory maps
+    ld hl,1! ld (@trk),hl ;Track with cpm3.sys
     call find$rec
-    ora a! jz boot
+    or a! jp z,boot
  sdboot$err:
-    PRINT 'Serial disk not connected or CPM3.SYS missing'
+    PRINTLN 'Serial disk not connected or CPM3.SYS missing'
     hlt
 
 hdboot:
-    PRINT 'Boot from hard drive'
-    lxi h,0! shld @sect
-    lxi h,1! shld @trk ; Read the first sector on Track 1 with the memory maps
-    mvi a,3! sta bootdev
+    PRINTLN 'Boot from hard drive'
+    ld hl,0! ld (@sect),hl
+    ld hl,1! ld (@trk),hl ; Read the first sector on Track 1 with the memory maps
+    ld a,3! ld (bootdev),a
 boot:
     call dev$read
-    PRINT 'CP/M Load addresses:'
-    PRINT ''
+;    ld hl,dma$data+80h! call ?print! halt
+    PRINTLN 'CP/M Load addresses:'
+    CRLF
+    PRINTLN '*************************'
     ;Get load adresses of Kernel
-    lxi d,biosbase! lxi h,dma$data+091h ;Base addr of BIOS
+    ld de,biosbase! ld hl,dma$data+091h ;Base addr of BIOS
     call ?str2hex
-    PRINT '*************************'
-    PRINT '* BIOS START: 0x'
-    lhld biosbase! call ?hex16
-    lxi d,bdosbase! lxi h,dma$data+0ach ;Base addr of BDOS
+    ld hl,(biosbase)
+    PRINT '* BIOS START: 0x'! HEX16 h! CRLF
+    ld de,bdosbase! ld hl,dma$data+0ach ;Base addr of BDOS
     call ?str2hex
-    PRINT '* BDOS START: 0x'
-    lhld bdosbase! call ?hex16
-    mvi a,JMP! sta tmpbdos
-    lxi b,6! dad b! shld tmpbdos+1
+    ld hl,(bdosbase)
+    push hl
+    PRINT '* BDOS START: 0x'! HEX16 h! CRLF
+    pop hl
+    ld a,0C3h! ld (tmpbdos),a ;JP **
+    ld bc,6! add hl,bc! ld (tmpbdos+1),hl ;temporary BDOS jump vector
 
-    lxi d,biostop! lxi h,dma$data+097h ;BIOS size
-    call ?str2hex
-    lhld biostop
-    LBCD biosbase
-    dad b ;add BIOS base and BIOS size
-    shld biostop ;store result in bistop
-    PRINT '* TOP: 0x'
-    call ?hex16
+    ld de,biossize! ld hl,dma$data+097h ;BIOS size
+    call ?str2hex ;Size of BIOS in DE
+    ld hl,(biosbase)
+    ld bc,(biossize)
+    add hl,bc ;add BIOS base and BIOS size
+    ld (biostop),hl ;store result in bistop
+    PRINT '* TOP: 0x'! HEX16 h! CRLF
 
-    lhld biostop
-    LBCD bdosbase
+    ld hl,(biostop)
+    ld bc,(bdosbase)
     adi 0; this resets the carry flag
-    DSBC BC ;BIOS Top - BDOS Base 
-    shld krnlsize 
-    PRINT '* KERNEL SIZE: 0x'! lhld krnlsize! call ?hex16
+    sbc hl,bc ;BIOS Top - BDOS Base 
+    ld (krnlsize),hl
+    PRINT '* KERNEL SIZE: 0x'! HEX16 h! CRLF
     ;Now read 256 byte sectors and copy 128-byte records in reverse order to biostop and below
-    PRINT '*************************'
-    PRINT ''
-
-    mov b,h ; b contains number of sectors
-    LDED biostop ;destination address for Kernel
+    PRINTLN '*************************'
+    ld a,(krnlsize+1) ;High byte of Kernelsize is the number of 256 byte sectors
+    ld b,a ; b contains number of sectors
+    ld de,(biostop) ;destination address for Kernel
 copy$loop:
-    push b
+    push bc
     ;Read next sector from disk
-    lda @sect! inr a! sta @sect
-    jnz copy$loop$rd
-    lhld @trk! inx h! shld @trk
+    ld a,(@sect)! inc a! ld (@sect),a
+    jp nz,copy$loop$rd
+    ld hl,(@trk)! inc hl! ld (@trk),hl
  copy$loop$rd: 
-    push d! call dev$read! pop d
-    dcr d ;Next target addr
-    lhld @dma! lxi b,080h! dad b ;Upper 128 byte record of DMA buffer
-    LDIR
-    lxi b, 080h! lhld @dma ;Lower 128 byte record of DMA buffer
-    LDIR
-    dcr d
-    pop b
-    DJNZ copy$loop
+    push de! call dev$read! pop de
+    dec d ;Next target addr
+    ld hl,(@dma)! ld bc,080h! add hl,bc ;Upper 128 byte record of DMA buffer
+    ldir
+    ld bc,080h! ld hl,(@dma) ;Lower 128 byte record of DMA buffer
+    ldir
+    dec d
+    pop bc
+    djnz copy$loop
 
-biosstart:
-    lhld biosbase
-    pchl
+;biosstart:
+    ld hl,(biosbase)
+    jp (hl)
 ;
 ; Auxiliary and debug functions
 ;
 ;find the string "CPM3   SYS" at the beginning of the dma buffer?
 ;returns a=0: if found. a=1 otherwise
-find$rec 
-    mvi b,11
-    lxi h, krnl$rec
-    LDED @dma! inx d! inx d
+find$rec:
+    ld b,11
+    ld hl,krnl$rec
+    ld de,(@dma)! inc de!
  fr$loop:
-    ldax d! ani 07fh! cmp m 
-    jnz fr$notfound
-    inx d! inx h ;next two characters to compare
-    DJNZ fr$loop
-    xra a! ret
+    ld a,(de)! and 07fh! cp (hl) 
+    jp nz,fr$notfound
+    inc de! inc hl ;next two characters to compare
+    djnz fr$loop
+    xor a! ret
  fr$notfound:
-    mvi a,1! ret
+    ld a,1! ret ;//todo
+    ;ld a,0! ret
 
- krnl$rec db 'CPM3    SYS' ;Name of kernel file
+ krnl$rec: db 'CPM3    SYS' ;Name of kernel file
 
 ;
-;Branch to the read function
+;Branch to the appropriate read function
 dev$read
     lda bootdev
  read$dev0:
-    cpi 0! ;Read from A> (No HD)
-    jz sd$read
+    cp 0! ;Read from A> (No HD)
+    jp z,sd$read
  read$dev1:
-    cpi 1! ;Read from A> (HD Avail.)
-    jz sd$read
+    cp 1! ;Read from A> (HD Avail.)
+    jp z,sd$read
  read$dev2:
-    cpi 2! ;Read from B>
-    rz
+    cp 2! ;Read from B>
+    ret z
  read$dev3:
-    cpi 3! ;Read from C>
-    jz pa$read
+    cp 3! ;Read from C>
+    jp z,?paread
 
-;
-; Data area
-;
+;Convert a byte string into a hex number
+;Input: <hl> Start addr of string, <de> Start addr of result (16 bit word)
+;After execution, the address pointed to by DE contains a hex number
+?str2hex::
+    ld b,2
+    inc de
+ s2h$lp:
+    ld a,(hl)! inc hl
+    call ?c2hex
+    add a! add a! add a! add a! ;Shift left 4 bytes
+    ld c,a ;Upper 4 bits
+    ld a,(hl)! inc hl
+    call ?c2hex
+    add c
+    ld (de),a 
+    dec de
+    djnz s2h$lp
+    ret
+?c2hex: ;Convert Single character in <a> to hex value
+    cp 65 ;'character A'
+    jp m,deci
+    sbc 55 ;A-F
+    ret
+ deci: 
+    sbc 47 ;1-9
+    ret
+
+
 dseg
-dart$config:
-wr$0: db 0, 00011000b     ;wr0, channel reset
-wr$1: db 1, 10000000b    ;wr1, halt CPU until character sent
-wr$3: db 3, 11000001b     ;wr3, Rx 8 Bit, receive enable
-wr$4: db 4, 10000100b     ;wr4, X32 Clock, No Parity, one stop bit
-wr$5: db 5, 01101000b     ;wr5, Tx 8 Bit, transmit enable
-cfglen equ $-dart$config
 
 bdosbase ds 2
 biosbase ds 2
+biossize ds 2
 biostop ds 2
 krnlsize ds 2
 dma$data ds 256
@@ -218,18 +227,13 @@ dma$data ds 256
 @sect: ds 2
 @dma: ds 2
 
-stack ds 16
-db 'ende'
+@covec: dw 0a000h
+
+stack ds 32
+ db 'ende'
 stack$end equ $
 
 
 end
-;trash
-
-    lxi h,0! mvi b,0
-    foo:
-        mov a,m! call ?hex8
-        inx h 
-    DJNZ foo
 
 
