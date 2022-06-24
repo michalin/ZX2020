@@ -46,8 +46,7 @@ ccp	equ 0100h	; Console Command Processor gets loaded into the TPA
 
     ; user defined character I/O routines
 
-	extrn ?ci,?co,?cist,?cost	; each take device in <B>
-	extrn ?cinit			; (re)initialize device in <C>
+	extrn ?ci,?co,?cist,?cost,?cinit	; each take device in <B>
 	extrn @ctbl			; physical character device table
 
     ; disk communication data items
@@ -72,7 +71,6 @@ ccp	equ 0100h	; Console Command Processor gets loaded into the TPA
 	public ?pderr		; print BIOS disk error message header
 
 	maclib modebaud		; define mode bits
-	maclib ports
 	maclib z80
 	maclib utils
 
@@ -139,31 +137,8 @@ ccp	equ 0100h	; Console Command Processor gets loaded into the TPA
 
 boot:
 	lxi sp,boot$stack
-
 	call ?init	; perform any system initialization
 			; and print signon message
-
-	lxi b,16*256+0 ! lxi h,@dtbl	; init all 16 logical disk drives
-d$init$loop:
-	push b		; save remaining count and abs drive
-	mov e,m ! inx h ! mov d,m ! inx h	; grab @drv entry
-	mov a,e ! ora d ! jz d$init$next	; if null, no drive
-	push h					; save @drv pointer 
-	xchg					; XDPH address in <HL>
-	dcx h ! dcx h ! mov a,m ! sta @RDRV	; get relative drive code
-	mov a,c ! sta @ADRV			; get absolute drive code
-	dcx h					; point to init pointer
-	mov d,m ! dcx h ! mov e,m		; get init pointer
-	xchg ! call ipchl			; call init routine
-	pop h					; recover @drv pointer
-d$init$next:
-	pop b					; recover counter and drive #
-	inr c ! dcr b ! jnz d$init$loop		; and loop for each drive
-	jmp boot$1
-
-	cseg	; following in resident memory
-
-boot$1:
 	call set$jumps
 	call ?ldccp				; fetch CCP for first time
 	jmp ccp
