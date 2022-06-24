@@ -1,12 +1,13 @@
 	title 'bank & move module for CP/M3 linked BIOS'
 
+p$bankselect equ 0
 	cseg
 
 	public ?move,?xmove,?bank
 	extrn @cbnk
 
 	maclib z80
-	maclib ports
+	;maclib syscfg
 
 ?xmove:		; ALTOS can't perform interbank moves
 	ret
