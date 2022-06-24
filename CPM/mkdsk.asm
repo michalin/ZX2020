@@ -15,241 +15,176 @@
 
     title 'ZX-2020 disk formatter'
 
-    bdos equ 5
-
-    maclib ports
-    maclib z80
     maclib utils
 
-; From which disk started?
-    call retdskf
-    ora a! jz check
-    PRINT 'This program must be started from drive A>'
-    jmp 0
-
+    PRINTLN 'ZX-2020 Disk formatter V2.0'
+    RETDSK ; From which disk started?
+    or a! jp z,check
+    PRINTLN 'This program must be started from drive A>'
+    jp 0
 ; Hard drive available?
 check:
-    mvi e,0ffh! call setermdef
-    mvi a,3! sta cpm$fcb
-    lxi d,cpm$fcb! call searchf
-    push psw! mov a,h 
-    cpi 4! jnz check$1 
-    print 'No hard drive found'
-    jmp 0
+    SETERMDE 0 ;Default Error mode: Shows error message and returns to the calling program
+    ld a,3! ld (cpm$fcb),a ;drive C>
+    SEARCH cpm$fcb ;Search for CPM3.sys on C>
+    push af! ld a,h 
+    cp 4! jp nz, check$1 ;Drive valid
+    PRINTLN 'No hard drive found'
+    jp 0
 
  check$1: ; Kernel file?
-    lxi d,welcome1! call printf
-    pop psw! inr a! jz start
-    lxi d,welcome2! call printf
+    PRINTLN 'Hard drive found. What do you want to do?'
+    PRINTLN 'i: Init disk'
+    PRINTLN 'f: Format disk: Init disk and write system files'
+    pop af! inc a! jp z,start
+    PRINTLN 'u: Update kernel files'
 
 ; Main menu
 start:
-    call readkey
-    cpi 'i'! jz initd
-    cpi 'f'! jz format
-    cpi 'u'! jz update
-    jmp 0
+    PRINTLN 'Press any other key to quit'
+    READKEY '>'
+    cp 'i'! jz initd
+    cp 'f'! jz format
+    cp 'u'! jz update
+    jp 0
 
 initd:
     PRINT 'Initialize disk. All data will be lost. Sure? (y/n) '
-    call readkey
-    cpi 'y'! jnz 0
-    call initb
-    jmp 0
+    READKEY '>'
+    cp 'y'! jp nz,0! call initb
+    jp 0
 
 format: 
     PRINT 'Format disk. All data will be lost. Sure? (y/n) '
-    call readkey
-    cpi 'y'! jnz 0
+    READKEY '>'
+    cp 'y'! jp nz,0
     call initb
     call cpykrnl
     call cpysys
-    lxi d,readymsg! call printf
-    jmp 0
+    CRLF
+    PRINTLN 'Ready. To copy the CP/M files to drive C> enter "pip c:=*.*"'
+    jp 0
 
 update: 
     PRINT 'Update kernel file. Sure? (y/n) '
-    call readkey
-    cpi 'y'! jnz 0
+    READKEY '>'
+    cp 'y'! jp nz, 0
     call cpykrnl
-    jmp 0
+    jp 0
 
-    mvi a,3! sta cpm$fcb
+    ld a,3! ld (cpm$fcb),a
     lxi d,cpm$fcb! ;call searchf
     ora a! ;jz cpycpm ; Just replace the files, do not format
 
 initb:
-    PRINT 'writing directory block, please wait.'
+    PRINTLN 'writing directory block, please wait.'
     ;Select drive C:
-    mvi c,2! call ?sldsk
+    ld c,2! call ?sldsk
     call ?home
 
  ;fill DMA buffer with 0xE5
-    mvi b,0! lxi h, DMA
+    ld b,0! ld hl,DMA
     ft$fill$dma:   
-    mvi m, 0E5h! inx h
-    DJNZ ft$fill$dma
+    ld (hl), 0E5h! inc hl
+    djnz ft$fill$dma
 
  ;Fill sectors of track 0 
     lxi b,DMA! call ?stdma
-    mvi b,0! lxi h,0 
+    ld b,0! ld hl,0 
     ft$writeall:
-        push b! push h
-        mov b,h! mov c,l! call ?stsec
+        push bc! push hl
+        ld b,h! ld c,l! call ?stsec
         call ?write
-        pop h! inx h! pop b
-        DJNZ ft$writeall
+        pop hl! inc hl! pop bc
+        djnz ft$writeall
 
-    mvi c,0! call ?sldsk
+    ld c,0! call ?sldsk
     ret
 
 cpykrnl:
-    lxi b,36! lxi h,cpm$fcb! lxi d,cur$fcb
-    LDIR
-    PRINT 'Copying Kernel to C>'
-    mvi b,1! call copy$file ; only first drive (C>)
+    ld bc,36! ld hl,cpm$fcb! ld de,cur$fcb
+    ldir
+    PRINTLN 'Copying Kernel to C>'
+    ld b,1! call copy$file ; only first drive (C>)
     ret
 cpysys:
     lxi b,36! lxi h,ccp$fcb! lxi d,cur$fcb
     LDIR
-    PRINT 'Copying ccp to C-F>'
-    mvi b, 4! call copy$file ; CCP.COM to all drives
-
+    PRINTLN 'Copying ccp to C-F>'
+    ld b,4! call copy$file ; CCP.COM to all drives
     lxi b,36! lxi h,ldr$fcb! lxi d,cur$fcb
     LDIR
-    PRINT 'Copying bootloader to C>'
-    mvi b, 1! call copy$file ; BOOTLDR.COM to drive C>
+    PRINTLN 'Copying bootloader to C>'
+    ld b,1! call copy$file ; BOOTLDR.COM to drive C>
     ret
 
 ;copy system files from A: to C:
 copy$file:  
-    push b
-    mvi a,1! sta cur$fcb ;Source drive a:
-    lxi d,cur$fcb! call openf
-    lxi d,DMA! call setdmaf
-  	mvi e,128! call setmultf	; allow up to 16k bytes
-	lxi d,cur$fcb! call readf	; load the thing
-    lxi d,cur$fcb! call closef
-    ;lxi h,DMA! ;mvi b,0! ;mvi c,p$zdart
-    ;outir
-    mvi a,3 ;Drive to start with
-    sta cur$fcb ;set target drive
-
-    pop b! mov c,a ; b: number of runs c: initial drive
+    push bc
+    ld a,1! ld (cur$fcb),a ;Source drive a:
+    OPEN cur$fcb
+    STDMA DMA
+    SETMULTI 128
+	READSEQ cur$fcb	; load the thing
+    CLOSE cur$fcb
+    ld a,3! ld (cur$fcb),a ;set target drive
+    pop bc! ld c,a ; b: number of runs; c: initial drive
  cf$wrloop:
-    push b! push d
-    mvi e,'.'! call coniof
-    pop d! pop b
-    ;PRINT 'Writing: '
-    ;mov a,c! ;call ?hex8
-    inr c  
-    push b
-    ;mvi a,3! ;sta cur$fcb ;Target drive C:
-    xra a! sta cur$fcb+32 ;Reset cr flag before writing
-    lda cur$fcb+9! ani 07fh! sta cur$fcb+9 ;Reset Read-only Attribute, so we can overwrite
-    lxi d,cur$fcb! call setattf
-    lxi d,cur$fcb! call openf
-    cpi 0ffh! jnz cp$write ;If file exists
-    lxi d,cur$fcb! call makef ;If file does not exist, create it
+    DIRIO '.'
+    inc c  
+    push bc
+    xor a! ld (cur$fcb+32),a ;Reset cr flag before writing
+    ld a,(cur$fcb+9)! and 07fh! ld (cur$fcb+9),a ;Reset Read-only Attribute, so we can overwrite
+    SETATTR cur$fcb
+    OPEN cur$fcb
+    cp 0ffh! jp nz, cp$write ;If file exists
+    MAKE cur$fcb ;If file does not exist, create it
  
  cp$write:
-    lxi d,cur$fcb! call writef
-    lxi d,cur$fcb! call closef
+    WRITESEQ cur$fcb
+    CLOSE cur$fcb
     ;Set attributes
-    lda cur$fcb+9! ori 080h! sta cur$fcb+9 ;Set Read-only Attribute
-    lda cur$fcb+10! ori 080h! sta cur$fcb+10 ;Set System Attribute
-    lxi d,cur$fcb! call setattf
-    pop b
-    DJNZ cf$wrloop
+    ld a,(cur$fcb+9)! ori 080h! ld (cur$fcb+9),a ;Set Read-only Attribute
+    ld a,(cur$fcb+10)! ori 080h! ld (cur$fcb+10),a ;Set System Attribute
+    SETATTR cur$fcb
+    pop bc
+    djnz cf$wrloop
+    CRLF
     ret
-
-;Waits for key pressed and returns value in <a>.
-readkey:
-    mvi c,6! mvi e,'>'! call bdos
-    mvi c,6! mvi e,0fdh! call bdos
-    push psw
-    mvi c,6! mov e,a! call bdos
-    pop psw
-    ret
-
-welcome1:
-    db 'ZX-2020 disk formatter. What do you want to do?',10,13
-    db 'i: Init disk',10,13
-    db 'f: Format disk: Init disk and write system files',10,13,'$'
-welcome2:
-    db 'u: Update kernel files',10,13,'$'
-
-readymsg:
-    db 10,13,'Ready',10,13
-    db 'To copy the CP/M files to drive C> enter "pip c:=*.*"',10,13,'$'
-
-;BDOS function calls
-;Input characters from command line
-coniof:
-    mvi c,6! jmp bdos
-
-printf:
-    mvi c,9! jmp bdos
-
-seldskf:
-    mvi c,14! jmp bdos
-
-openf:
-    mvi c,15! jmp bdos
-closef:
-    mvi c,16! jmp bdos
-searchf:
-    mvi c,17! jmp bdos
-readf:
-    mvi c,20! jmp bdos
-writef:
-    mvi c,21! jmp bdos
-makef:
-    mvi c,22! jmp bdos
-retdskf:
-    mvi c,25! jmp bdos
-setdmaf:
-    mvi c,26! jmp bdos
-setmultf:
-    mvi c,44! jmp bdos
-
-setermdef:
-    mvi c,45! jmp bdos
-
-setattf:
-    mvi c,30! jmp bdos
 
 ; Redirection functions to BIOS calls
 ?home:
-    mvi a,8! sta bp$func
-    mvi c,50! lxi d,biospb
-    jmp bdos
+    ld a,8! ld (bp$func),a
+    ld c,50! lxi d,biospb
+    jp bdos
 
 ?sldsk:
-    mvi a,9! sta bp$func
-    mov a,c! sta bp$bcreg
-    mvi a,0! sta bp$bcreg+1 
-    mvi c,50! lxi d,biospb
-    jmp bdos
+    ld a,9! ld (bp$func),a
+    ld a,c! ld (bp$bcreg),a
+    ld a,0! ld (bp$bcreg+1),a
+    ld c,50! lxi d,biospb
+    jp bdos
 
 ?stsec:
-    mvi a,11! sta bp$func
-    mov a,c! sta bp$bcreg
-    mov a,b! sta bp$bcreg+1 
-    mvi c,50! lxi d,biospb
-    jmp bdos
+    ld a,11! ld (bp$func),a
+    ld a,c! ld (bp$bcreg),a
+    ld a,b! ld (bp$bcreg+1),a
+    ld c,50! lxi d,biospb
+    jp bdos
 
 ?stdma:
-    mvi a,12! sta bp$func
-    mov a,c! sta bp$bcreg
-    mov a,b! sta bp$bcreg+1 
-    mvi c,50! lxi d,biospb
-    jmp bdos
+    ld a,12! ld (bp$func),a
+    ld a,c! ld (bp$bcreg),a
+    ld a,b! ld (bp$bcreg+1),a
+    ld c,50! lxi d,biospb
+    jp bdos
 
 ?write:
-    mvi a,14! sta bp$func
-    mvi c,50! lxi d,biospb
-    jmp bdos
+    ld a,14! ld (bp$func),a
+    ld c,50! lxi d,biospb
+    jp bdos
+
+DSEG
 
 ;Parameters to be passed to BIOS functions
 biospb:
@@ -270,8 +205,9 @@ ldr$fcb:
 
 cur$fcb ds 36
 
-DMA equ $+100 ;use TPA after program for file exchange
+;@covec:: dw 0a000h
 
-
+DMA db 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+;DMA equ $+100 ;use TPA after program for file exchange
 end    
 
