@@ -63,7 +63,7 @@ private slots:
     void on_timer();
     void on_actionSet_Kernel_File_triggered();
     void on_actionAbout_triggered();
-    void on_pButtonDump_clicked();
+    //void on_pButtonDump_clicked();
     void on_RxData();
     void on_SerialClose();
     void on_actionFormat_disk_triggered();
@@ -72,6 +72,7 @@ private slots:
 
 signals:
     void command(const QByteArray);
+    void message(const QString);
 
 private:
     Ui::MainWindow *ui;
@@ -84,6 +85,7 @@ private:
     Loader *p_loader = new Loader(p_serial, this);
     Serialdisk *p_serdisk = new Serialdisk(p_serial, p_cpmPath, this);
     QLineEdit *p_address;
+    QFileSystemWatcher *p_fileSystemWatcher = new QFileSystemWatcher(this);
     int task; //What to do after Arduino has rebooted
     void setBinFile(const QString);
     void on_actionLoad_triggered();
