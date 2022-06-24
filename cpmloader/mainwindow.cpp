@@ -119,7 +119,7 @@ void MainWindow::on_timer(){
     QList<QSerialPortInfo> ports = QSerialPortInfo::availablePorts();
     for(QList<QSerialPortInfo>::iterator i=ports.begin(); i<ports.end(); i++)
     {
-        if(!i->isBusy())
+        if(!i->isNull())
             freePortNames.append(i->portName() + ": " + i->description());   //List with available ports
     }
 
@@ -169,12 +169,27 @@ void MainWindow::setBinFile(const QString inFile){
     setWindowTitle(inFile.section("/", -1) + " - " + PROGNAME);
     *p_cpmPath = inFile.section("/", 0, -2);
     //p_fileSystemWatcher->addPath(inFile);
-    //connect(p_fileSystemWatcher, SIGNAL(fileChanged(QString&)), this, SLOT(on_sysfileChanged(QString&)));
+    p_fileSystemWatcher->addPath(*p_cpmPath + "/cpm3.sys");
+    connect(p_fileSystemWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(on_sysfileChanged(const QString&)));
 }
 
+
 void MainWindow::on_sysfileChanged(const QString& sys){
-    qDebug("-->MainWindow::on_sysfileChanged(%s", sys.toLocal8Bit().data());
+    //qDebug("-->MainWindow::on_sysfileChanged(%s", sys.toLocal8Bit().data());
+    QThread::sleep(2);
+    p_fileSystemWatcher->removePath(sys);
+    disconnect(p_fileSystemWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(on_sysfileChanged(const QString&)));
+    p_fileSystemWatcher->addPath(sys);
+    connect(p_fileSystemWatcher, SIGNAL(fileChanged(const QString&)), this, SLOT(on_sysfileChanged(const QString&)));
+    if(!QFile(sys).exists())
+    {
+        //qDebug("file does not exist");
+        return;
+    }
+    //emit message(tr("cpm3.sys updated: Reloading."));
     on_pButtonLoad_clicked();
+
+
 }
 
 void MainWindow::on_serialError(QSerialPort::SerialPortError status){
@@ -231,13 +246,13 @@ void MainWindow::on_actionAbout_triggered()
     lic.close();
 }
 
-void MainWindow::on_pButtonDump_clicked()
+/*void MainWindow::on_pButtonDump_clicked()
 {
     //ui->debug->clear();
     task=tasks::DUMP;
     p_serial->setDataTerminalReady(true); //Reset Arduino --> Re-activate command listener
     p_serial->setDataTerminalReady(false);
-}
+}*/
 
 void MainWindow::on_SerialClose()
 {
