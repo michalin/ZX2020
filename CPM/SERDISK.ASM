@@ -36,10 +36,10 @@
 	extrn	?conin,?cono	; con in and out
 	extrn	?const		; get console status
 
-	maclib ports
+	maclib syscfg
 	maclib cpm3
 	maclib z80
-	maclib utils
+	;maclib utils
     ; common control characters
 
 cr	equ 13
@@ -121,11 +121,12 @@ snd$req$end:
 	OUTIR
 	ret
 
-dta$reg equ p$zdart + 2 ;DART data register Port B
-cfg$reg equ p$zdart + 3 ;DART config register Port B
+dta$reg equ p$zdart$B ;DART data register Port B
+cfg$reg equ p$zdartCFG$B ;DART config register Port B
 
 ; Bios read function
 sd$read:
+	di
 	mvi a, 'R'
     call snd$req$hdr    ; Send request to PC
     call snd$req$end    ; Send request to PC
@@ -138,12 +139,15 @@ sd$read:
 	in cfg$reg!	ani 1! jz sd$read$poll2		;Wait for data in rx buffer
 	INI
 	jnz sd$read$poll1 ; next byte, reset timeout
+	call reset$irq
     mvi a, 0! ret
  sd$read$error:
+	call reset$irq
 	mvi a,1! ret
 
 ; Write sectors
 sd$write
+	di
 	mvi a, 'W'
     call snd$req$hdr    ; Send request to PC
 	lhld @dma! mvi c, dta$reg! mvi b, 0
@@ -160,9 +164,16 @@ ack$wait:
 	in dta$reg ;read to reset flag 
 	dcr b
 	jnz ack$wait
+	call reset$irq
 	xra a! ret
  sd$write$error:
+	call reset$irq
 	mvi a,1! ret
 
+;Fuction that resets interrupts
+reset$irq: 
+	mvi a,00010000b! out p$zdartCFG$A! out p$zdartCFG$B
+	ei 
+	ret
 end
 	
