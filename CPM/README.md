@@ -9,3 +9,7 @@ Requirements:
 todo:
 - Add GNU make utiliy executable (make.exe) to your Path.
 - Open command shell, cd into this directory and type "make"
+
+When using without TMS99x8 (Serial connection only), you can change the following parameters in gencpm.dat and rebuild.
+- MEMTOP   = FF  
+- PAGWID   = 50  (80 columns)
