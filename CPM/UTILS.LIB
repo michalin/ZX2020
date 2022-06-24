@@ -1,56 +1,231 @@
-extrn ?str2hex,?c2hex,?hex8,?hex16,?showfcb
+
+	extrn hx8,hx16,memdmp,printstr
+	extrn sleep
+    bdos equ 5
 
 
-; Macro to print out text on DART-B
-DEBUG MACRO ?dbgmsg
-	local ?msg,?go
-	jmp ?go
- ?msg:
-	db '<DBG>',10,13,?dbgmsg,'</DBG>'
- ?go: 
-	push b! push h
-    mvi b, ?go-?msg
-    mvi c, p$zdart+2
-	lxi h, ?msg
-	OUTIR
-	pop h! pop b 
-	ENDM
-
-
-; Macro to print out text on DART-A
-PRINT MACRO ?dbgmsg
-	local ?msg,?go
-	jmp ?go
- ?msg:
-	db 10,13,?dbgmsg
- ?go:
-	push b! push h
-    mvi b, ?go-?msg
-    mvi c, p$zdart
-	lxi h, ?msg
-	OUTIR
-	pop h! pop b 
-	ENDM
-	
-; delay macro
-DLY MACRO ?time
-    local ?lp
-    PUSH d! PUSH psw
-    lxi d, ?time
- ?lp:  DCX d ;Count down de
-    MOV A, d! ORA e ;until e || d == 0
-    JNZ ?lp
-    POP psw! POP d
-    ENDM
-
-DBGINT8 MACRO ?var8
+; Show 8-Bit hex number in reg
+HEX8 MACRO ?reg
 	push psw
-    lda ?var8! call ?hex8
+	mov a,?reg!	call hx8
 	pop psw
 	ENDM
 
-DBGINT16 MACRO ?var16
-	push h
-	lhld ?var16 ! call ?hex16
-	pop h
+HEX16 MACRO ?reg
+	push ?reg! pop h! call hx16 
 	ENDM
+
+; Macro to print out text
+PRINT MACRO ?prn
+	local ?prnt,?msg
+	jmp ?prnt
+	?msg db ?prn,0
+ ?prnt:
+	push psw! push b! push d! push h
+	lxi d,?msg
+	call printstr
+	pop h! pop d! pop b! pop psw
+	ENDM
+; Carriage return & Line feed
+
+CRLF MACRO
+	local ?prnt,?break
+	jmp ?prnt
+	?break db 10,13,0
+ ?prnt:
+	PRINT <10,13>
+	ENDM
+
+PRINTLN MACRO ?prn
+	PRINT ?prn
+	CRLF
+	ENDM
+
+;Dump memory 
+ ;Parameters:
+ ;reg: Beginning of address
+ ;num: Number of lines (16 if omitted)
+DUMP MACRO reg,num
+	if not nul num
+	mvi b,num
+	else 
+	mvi b,16
+	endif
+	lxi h,reg 
+	call memdmp
+	ENDM
+
+DLY MACRO ?time
+	push b! push h
+	lxi h,?time
+	call sleep
+	pop h! pop b 
+	ENDM
+
+;------------------- BDOS MACROS -----------------------------------
+
+;BDOS FUNCTION 6: DIRECT CONSOLE I/0
+ ;Entry Parameters:
+ ;E: 0FFH (input/status) or
+ ;0FEH (status) or
+ ;0FDH (input) or
+ ;char (output)
+ ;Returned Value:
+ ;Register A: char or status (no value)
+DIRIO MACRO ?char
+    push psw! push b! push d! push h
+	mvi c,6! mvi e,?char! call BDOS
+    pop h! pop d! pop b! pop psw
+	ENDM
+
+;BDOS FUNCTION 13: RESET DISK SYSTEM
+ ;Entry Parameters: None
+RESETD MACRO
+	mvi c,13! call bdos 
+	ENDM
+
+;BDOS FUNCTION 15: OPEN FILE
+ ;Entry Parameters:
+ ;DE: FCB Address
+ ;Returned Value:
+ ;Registers A: Directory Code
+ ;H: Physical or Extended Error
+OPEN MACRO ?fcb
+	lxi d,?fcb
+    mvi c,15! call bdos
+	ENDM
+
+;BDOS FUNCTION 16: CLOSE FILE
+ ;Entry Parameters:
+ ;DE: FCB Address
+ ;Returned Value:
+ ;Registers A: Directory Code
+ ;H: Physical or Extended Error
+CLOSE MACRO ?fcb
+	lxi d,?fcb
+    mvi c,16! call bdos
+	ENDM
+
+;BDOS FUNCTION 17: SEARCH FOR FIRST
+ ;Entry Parameters:
+ ;DE: FCB Address
+ ;Returned Value:
+ ;Registers A: Directory Code
+ ;H:Physical Error
+ ;The Search For First function scans the directory for a match with the FCB addressed by register pair DE.
+SEARCH MACRO ?fcb
+	lxi d,?fcb
+    mvi c,17! call bdos
+	ENDM
+
+;BDOS FUNCTION 20: READ SEQUENTIAL
+ ;Entry Parameters:
+ ;Registers C: 14H
+ ;Returned Value:
+ ;Registers A: Error Code
+ ;H: Physical Error
+ ;The Read Sequential function reads the next 1 to 128 128-byte records from a file
+ ;into memory beginning at the current DMA address
+READSEQ MACRO ?fcb
+	lxi d,?fcb
+    mvi c,20! call bdos
+	ENDM
+
+;BDOS FUNCTION 21: WRITE SEQUENTIAL
+ ;Entry Parameters:
+ ;DE: FCB Address
+ ;Returned Value:
+ ;Registers A: Error Code
+ ;H: Physical Error
+ ;The Write Sequential function writes 1 to 128 128-byte data records, beginning at
+ ;the current DMA
+WRITESEQ MACRO ?fcb
+	lxi d,?fcb
+    mvi c,21! call bdos
+	ENDM
+
+;BDOS FUNCTION 22: MAKE FILE
+ ;Entry Parameters:
+ ;DE: FCB Address
+ ;Returned Value:
+ ;Registers A: Directory Code
+ ;H: Physical or Extended Error
+ ;The Make File function creates a new directory entry for a file under the current
+ ;user number.
+MAKE MACRO ?fcb
+	lxi d,?fcb
+    mvi c,22! call bdos
+	ENDM
+
+;BDOS FUNCTION 26: SET DMA ADDRESS
+ ;Entry Parameters:
+ ;DE: DMA Address
+STDMA MACRO ?addr
+	lxi d,?addr
+    mvi c,26! call bdos
+	ENDM
+
+;BDOS FUNCTION 25: RETURN CURRENT DISK
+ ;Returned Value:
+ ;Register A: Current Disk
+ ;Returns the currently selected default disk number in register A. The
+ ;disk numbers range from 0 through 15 corresponding to drives A through P.
+RETDSK MACRO
+	mvi c,25! call bdos
+	ENDM
+
+;BDOS FUNCTION 30: SET FILE ATTRIBUTES
+ ;Entry Parameters:
+ ;DE: FCB Address
+ ;Returned Value:
+ ;Registers A: Directory Code
+ ;H: Physical or Extended error
+ ;By calling the Set File Attributes function, a program can modify a file's attributes
+ ;and set its last record byte count
+SETATTR MACRO ?fcb
+	lxi d,?fcb
+    mvi c,30! call bdos
+	ENDM
+
+;BDOS FUNCTION 44: SET MULTI-SECTOR COUNT
+ ;Entry Parameters:
+ ;Registers C: 2CH
+ ;E: Number of Sectors
+ ;Returned Value:
+ ;Register A: Return Code
+ ;The Set Multi-Sector Count function provides logical record blocking under
+ ;CP/M 3. It enables a program to read and write from 1 to 128 records of 128 bytes
+ ;at a time during subsequent BDOS Read and Write functions.
+SETMULTI MACRO ?count
+	mvi e,?count
+    mvi c,44! call bdos
+	ENDM
+
+;BDOS FUNCTION 45: SET BDOS ERROR MODE
+ ;Entry Parameters:
+ ;E: BDOS Error Mode
+ ;Returned Value: None
+ ;Function 45 sets the BDOS error mode for the calling program to the mode specified
+ ;in register E. If register E is set to OFFH, 255 decimal, the error mode is set to
+ ;Return Error mode. If register E is set to OFEH, 254 decimal, the error mode is set
+ ;to Return and Display mode. If register E is set to any other value, the error mode is
+ ;set to the default mode.
+SETERMDE MACRO ?errmde
+	mvi e,?errmde
+    mvi c,45! call bdos
+	ENDM
+
+;Waits for key pressed and returns value in <a>.
+ ;Entry Parameters:
+ ;Prompt character
+ ;Returned Value: Code for Pressed key in A
+READKEY MACRO ?prompt
+    mvi c,6! mvi e,?prompt! call bdos ;Prompt
+    mvi c,6! mvi e,0fdh! call bdos ;Console input command, returns an input character; this function will suspend the calling process until a character is ready.
+    push psw
+    mvi c,6! mov e,a! call bdos ;Display character just type
+    pop psw
+    CRLF
+    ENDM
+
+	

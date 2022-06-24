@@ -1,97 +1,123 @@
-; Copyright (C) 2020  Doctor Volt
+   extrn ?co,?pmsg,@covec
 
- ; This program is free software: you can redistribute it and/or modify
- ; it under the terms of the GNU General Public License as published by
- ; the Free Software Foundation, either version 3 of the License, or
- ; (at your option) any later version.
+;@covec: dw 0a000h
 
- ; This program is distributed in the hope that it will be useful,
- ; but WITHOUT ANY WARRANTY; without even the implied warranty of
- ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ; GNU General Public License for more details.
-
- ; You should have received a copy of the GNU General Public License
- ; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
-   title 'Utility functions that make assembly programming easier'
-
-   maclib z80
-   maclib ports
-
-   public ?str2hex,?c2hex,?hex8,?hex16,?showfcb
-
-;Convert a byte string into a hex number
-;Input: <hl> Start addr of string
-;Output: <de> Start addr of result (16 bit word)
-?str2hex:
-    mvi b,2
-    inx d
- s2h$lp:
-    mov a,m! inx h
-    call ?c2hex
-    add a! add a! add a! add a! ;Shift left 4 bytes
-    mov c,a ;Upper 4 bits
-    mov a,m! inx h
-    call ?c2hex
-    add c
-    stax d 
-    dcx d
-    DJNZ s2h$lp
-    ret
-?c2hex: ;Convert Single character in <a> to hex value
-    cpi 65 ;'character A'
-    jm dec
-    sbi 55 ;A-F
-    ret
- dec: 
-    sbi 47 ;1-9
-    ret
+bdos equ 5
+    maclib syscfg
+; Reg. HL contains delay time in ms
+sleep::
+   ld bc,1
+ outer$lp:
+   push hl ;11
+   ld hl,clk$freq/25  ;10
+   inner$lp:
+    sbc hl,bc; 15
+    jp nz,inner$lp ;one loop takes 25 T States (6.25 µs with 4MHz clock) (10)
+   pop hl ;10
+   sbc hl,bc ;15
+   jp nz,outer$lp ;10
+   ret
 
 ; Print out a 16-Bit HEX value
 ; Input value in <hl>
-?hex16:
-    push psw
-    mov a,h
-    call ?hex8
-    mov a,l
-    call ?hex8
-    pop psw
+hx16::
+    push af
+    push hl
+    ld a,h
+    call hx8
+    pop hl! ld a,l
+    call hx8
+    pop af
     ret
-    
+
 ; Input value in <a>
-?hex8:
-    sta inval
-    ;mvi a,0bah
-    rar! rar! rar! rar  
+hx8::
+    push af 
+    ld (inval),a
+    rra! rra! rra! rra  
     call hex4
-    lda inval
+    ld a,(inval)
     call hex4
-    lda inval
+    ld a,(inval)
+    pop af
     ret
     inval: ds 1
 
 hex4:
-    ani 0fh! cpi 10 ; >=10
-    jp a2f 
-    adi 48 ;output 0-9
-    jmp ot
+    and 0fh! cp 10 ; >=10
+    jp p,a2f 
+    add 48 ;output 0-9
+    jp ot
  a2f: 
-    adi 55 ;output a-h
+    add 55 ;output a-h
  ot:
-    out p$zdart
+   call ?putc
+   ;out 10h
    ret
 
-; Dump an FCB
-; Start addr of fcb in hl
-?showfcb:
-	mov a,m! call ?hex8 ;Drive
-	mvi b,11! mvi c,p$zdart! inx h 
-	outir ; Print Filename
-	mvi b,24
- sf$loop:
-	mov a,m! call ?hex8
-	mvi a,' '! out p$zdart
-    inx h
- 	DJNZ sf$loop
-    ret
+;dump 256 byte starting from location pointed to by HL
+;reg. B contains the number of lines
+memdmp::
+ dump$out: ;outer loop
+  push bc
+  ld b,16 ;Number of bytes per line
+  ld de,line$buf
+ dump$ln: ;Inner loop: dump line
+  ld a,(hl)! inc hl
+  call hx8
+  cp 20! jp p,prnttble ;printable char >20
+  ld a,'-' ;Replace control chars by -
+ prnttble:
+  ld (de),a! inc de
+  ld a,' '! call ?putc ;Blank
+  djnz dump$ln
+  ld b,20! ld de,line
+ strout:
+  ld a,(de)! inc de
+  call ?putc
+  djnz strout
+
+  ld a,10! call ?putc ;Line break
+  ld a,13! call ?putc
+  pop bc
+  djnz dump$out
+  ret
+  line db '    '
+  line$buf ds 16
+
+
+; Put character in register a to screen
+?putc::
+   push a
+   ld hl,@covec
+   ld a,h! or l! jp nz,putc$bios ; Are we in BIOS scope? (linked against chario.rel)
+   pop a
+   ld e,a! ld c,6! jmp bdos ; call BDOS function 6: DIRECT CONSOLE IO
+   ;ret
+ putc$bios: ;BIOS scope
+   pop a
+   ld hl,(@covec)
+	ld c,a! ld b,0		; start with device 0
+ co$next:
+	adc hl,hl   ; shift out next bit
+	jp nc,not$out$device
+	push hl		; save the vector
+	push bc	   ; save the character and device
+	call ?co	   ; if device selected, print it
+	pop bc		; recover count and character
+	pop hl		; recover the rest of the vector
+ not$out$device:
+	inc b		; next device number
+	ld a,h ! or l	; see if any devices left
+	jp nz,co$next	; and go find them...
+	ret
+
+;Print a null terminated string pointed to by DE
+printstr::
+   ld a,(de)! inc de
+   or a! ret z ; Terminate when character is zero
+   push de
+   call ?putc
+   pop de
+   jp printstr
+
