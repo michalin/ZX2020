@@ -1,0 +1,25 @@
+; System configuration
+
+;Port numbers
+p$zdart$A       equ    10h
+p$zdartCFG$A    equ    11h
+p$zdart$B       equ    12h
+p$zdartCFG$B    equ    13h
+
+dart$ra0 equ 00011000b     ;wr0, channel reset
+dart$ra1 equ 10000000b     ;wr1, halt CPU until character sent
+dart$ra3 equ 11000001b     ;wr3, Rx 8 Bit, receive enable
+dart$ra4 equ 10000100b     ;wr4, X32 Clock, No Parity, one stop bit
+dart$ra5 equ 01101000b     ;wr5, Tx 8 Bit, transmit enable
+
+dart$rb0 equ 00011000b     ;wr0, channel reset
+dart$rb1 equ 10000000b     ;wr1, halt CPU until character sent, EXT. int enabled, Status affects vector
+dart$rb2 equ 00000110b     ;wr2. Interrupt vector
+dart$rb3 equ 11000001b     ;wr3, Rx 8 Bit, receive enable
+dart$rb4 equ 10000100b     ;wr4, X32 Clock, No Parity, one stop bit
+dart$rb5 equ 01101000b     ;wr5, Tx 8 Bit, transmit enable
+
+p$pata  equ 20h
+p$vdp   equ 40h
+
+clk$freq equ 4000 ;Clock speed in Kilohertz
