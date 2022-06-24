@@ -16,13 +16,13 @@
 
 title 'PATA disk driver'
 
-public pa$init,pa$read,pa$write
+public ?painit,?paread,?pawrite
 
 ;Includes
 maclib cpm3
 maclib z80
 maclib utils
-maclib ports
+maclib syscfg
 ;Command block registers
 dev$addr  equ 100000b ; Base address A5
 reg$data    equ dev$addr+000b ;Data register
@@ -108,10 +108,10 @@ dpb$pata ;Disk Parameter Block
 
 ; Extended Disk Parameter Headers (XDPHs)
 xdph:
-	dw	pa$write
-	dw	pa$read
-	dw	pa$login
-	dw	pa$init2
+	dw	?pawrite
+	dw	?paread
+	dw	?palogin
+	dw	?painit2
 	db	0,0		; unit, type
 pata0:	;Disk Parameter Header (DPH)
 	DPH  0, dpb$pata, 0
@@ -120,7 +120,7 @@ pata0:	;Disk Parameter Header (DPH)
 
 ; Init routine called by bootloader.
 ; returns a=0 on success, a=1 otherwise
-pa$init:
+?painit:
 	;PRINT 'Init PATA drive'
 	in reg$status
 	ani DRDY
@@ -131,7 +131,7 @@ pa$init:
 	mvi b,100
 
  bsy$wait
-	DLY 0ffffh
+	DLY 100
 	in reg$status
 	;call ?hex8
 	BIT 0,a ;Error Flag
@@ -173,12 +173,12 @@ pa$init:
 
 ; Disk I/O routines for standardized BIOS interface
 ; Initialization entry points.
-pa$init2:
+?painit2:
 	; Just do nothing, because drive has already been initialized
-	; by pa$init, invoked by bootloder
+	; by ?painit, invoked by bootloder
 	ret
 
-pa$login:
+?palogin:
 	;PRINT 'Pata drive selected: '
 	ret	
 
@@ -198,7 +198,7 @@ pa$login:
 
 
 ; Bios read function
-pa$read:
+?paread:
 	rept 100 ;Waiting a bit here makes the thing work. 
 	nop
 	endm
@@ -229,7 +229,7 @@ pa$read:
 	ret
 
 ; write function
-pa$write
+?pawrite
 	OFFSET
 	lhld @sect
 	add l ;offset for selected drive
@@ -281,13 +281,9 @@ wait$sr:
 	mov e,a
   	jmp wait$sr$wt
  wait$sr$wt: 
-  	DLY 0fffh 
+  	DLY 1 
 	DJNZ wait$sr$loop ;retry
-	call ?pmsg ;print error message
-	PRINT 'Drive status: '
-	mvi h,0! mov l,d! push d! call ?hex16! pop d
-	PRINT 'Drive error: '
-	mvi h,0! mov l,e! push d! call ?hex16! pop d
+	PRINTLN 'Pata: Something went wrong '
 	mvi a,1 ;Something went wrong
 	ret
 
